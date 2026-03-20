@@ -1,0 +1,26 @@
+{
+  "name": "rpn",
+  "version": "1.0.0",
+  "description": "PWA RPN Calculator for mobiles",
+  "main": "public/index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gack951/rpn.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/gack951/rpn/issues"
+  },
+  "homepage": "https://github.com/gack951/rpn#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "playwright": "^1.58.2"
+  }
+}

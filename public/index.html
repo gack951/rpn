@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#5a665a">
+    <title>RPN Calculator</title>
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="stylesheet" href="./index.css">
+</head>
+
+<body>
+    <main class="app-shell">
+        <section class="calculator" aria-label="RPN Calculator">
+            <header class="display-panel">
+                <div class="display-meta">
+                    <span class="display-modes">
+                        <span class="angle-mode" data-angle-mode>DEG</span>
+                        <span class="mode-flag" data-hyp-mode hidden>HYP</span>
+                        <span class="mode-flag" data-radix-mode hidden>HEX</span>
+                        <span class="mode-flag" data-format-mode hidden>FIX</span>
+                    </span>
+                    <span class="stack-count" data-stack-count>STACK: 1</span>
+                </div>
+                <div class="stack-grid">
+                    <span class="stack-label">4:</span>
+                    <span class="stack-value" data-register="t">
+                        <span class="x-display sci-display">
+                            <span class="x-display__main exp-display__mantissa sci-display__mantissa" data-register-t-main></span>
+                            <span class="x-display__suffix exp-display__suffix sci-display__suffix" data-register-t-suffix aria-hidden="true" hidden>
+                                <span class="x-display__exponent exp-display__exponent sci-display__exponent" data-register-t-exponent></span>
+                                <span class="x-display__multiplier exp-display__multiplier sci-display__multiplier">x10</span>
+                            </span>
+                        </span>
+                    </span>
+                    <span class="stack-label">Z:</span>
+                    <span class="stack-value" data-register="z">
+                        <span class="x-display sci-display">
+                            <span class="x-display__main exp-display__mantissa sci-display__mantissa" data-register-z-main></span>
+                            <span class="x-display__suffix exp-display__suffix sci-display__suffix" data-register-z-suffix aria-hidden="true" hidden>
+                                <span class="x-display__exponent exp-display__exponent sci-display__exponent" data-register-z-exponent></span>
+                                <span class="x-display__multiplier exp-display__multiplier sci-display__multiplier">x10</span>
+                            </span>
+                        </span>
+                    </span>
+                    <span class="stack-label">Y:</span>
+                    <span class="stack-value" data-register="y">
+                        <span class="x-display sci-display">
+                            <span class="x-display__main exp-display__mantissa sci-display__mantissa" data-register-y-main></span>
+                            <span class="x-display__suffix exp-display__suffix sci-display__suffix" data-register-y-suffix aria-hidden="true" hidden>
+                                <span class="x-display__exponent exp-display__exponent sci-display__exponent" data-register-y-exponent></span>
+                                <span class="x-display__multiplier exp-display__multiplier sci-display__multiplier">x10</span>
+                            </span>
+                        </span>
+                    </span>
+                    <span class="stack-label">X:</span>
+                    <span class="stack-value stack-value--x" data-register="x">
+                        <span class="x-display sci-display">
+                            <span class="x-display__main exp-display__mantissa sci-display__mantissa" data-register-x-main>0.</span>
+                            <span class="x-display__suffix exp-display__suffix sci-display__suffix" data-register-x-suffix aria-hidden="true" hidden>
+                                <span class="x-display__exponent exp-display__exponent sci-display__exponent" data-register-x-exponent></span>
+                                <span class="x-display__multiplier exp-display__multiplier sci-display__multiplier">x10</span>
+                            </span>
+                        </span>
+                    </span>
+                </div>
+            </header>
+
+            <section class="memory-strip" aria-label="Memory shortcuts">
+                <button class="memory-strip__menu" type="button" data-action="menu" aria-label="More functions">...</button>
+                <button class="memory-strip__key" type="button" data-action="drg">DRG</button>
+                <button class="memory-strip__key" type="button" data-action="tab">TAB</button>
+                <button class="memory-strip__key" type="button" data-action="recall-memory-menu">RCL</button>
+                <button class="memory-strip__key" type="button" data-action="store-memory-menu">STO</button>
+                <button class="memory-strip__key" type="button" data-action="memory-subtract">M-</button>
+            </section>
+
+            <section class="keypad" aria-label="Calculator keypad">
+                <div class="key-row key-row--six">
+                    <button class="key key--shift" type="button" data-action="shift"><span class="key__primary">SHIFT</span></button>
+                    <button class="key" type="button" data-action="drg"><span class="key__primary">DRG</span></button>
+                    <button class="key" type="button" data-action="fse"><span class="key__primary">FSE</span></button>
+                    <button class="key key--memory" type="button" data-action="memory-recall"><span class="key__primary">MR</span></button>
+                    <button class="key key--memory" type="button" data-action="memory-store"><span class="key__primary">MS</span></button>
+                    <button class="key key--memory" type="button" data-action="memory-add"><span class="key__primary">M+</span></button>
+                </div>
+
+                <div class="key-row key-row--six">
+                    <button class="key" type="button" data-action="hyp" data-shift-action="inverse-hyp"><span class="key__secondary">hyp<sup>-1</sup></span><span class="key__primary">hyp</span></button>
+                    <button class="key" type="button" data-action="sin" data-shift-action="asin"><span class="key__secondary">sin<sup>-1</sup></span><span class="key__primary">sin</span></button>
+                    <button class="key" type="button" data-action="cos" data-shift-action="acos"><span class="key__secondary">cos<sup>-1</sup></span><span class="key__primary">cos</span></button>
+                    <button class="key" type="button" data-action="tan" data-shift-action="atan"><span class="key__secondary">tan<sup>-1</sup></span><span class="key__primary">tan</span></button>
+                    <button class="key" type="button" data-action="ln" data-shift-action="exp-e"><span class="key__secondary">e<sup>x</sup></span><span class="key__primary">ln</span></button>
+                    <button class="key" type="button" data-action="log" data-shift-action="exp-10"><span class="key__secondary">10<sup>x</sup></span><span class="key__primary">log</span></button>
+                </div>
+
+                <div class="key-row key-row--six">
+                    <button class="key" type="button" data-action="power" data-shift-action="root"><span class="key__secondary">x&#8730;y</span><span class="key__primary">y<sup>x</sup></span></button>
+                    <button class="key" type="button" data-action="sqrt" data-shift-action="cuberoot"><span class="key__secondary">3&#8730;</span><span class="key__primary">&#8730;</span></button>
+                    <button class="key" type="button" data-action="square" data-shift-action="cube"><span class="key__secondary">x<sup>3</sup></span><span class="key__primary">x<sup>2</sup></span></button>
+                    <button class="key" type="button" data-action="reciprocal" data-shift-action="percent"><span class="key__secondary">%</span><span class="key__primary">1/x</span></button>
+                    <button class="key key--warn" type="button" data-action="drop" data-shift-action="tab"><span class="key__secondary">STACK</span><span class="key__primary">DROP</span></button>
+                    <button class="key key--warn" type="button" data-action="swap" data-shift-action="lastx"><span class="key__secondary">LAST x</span><span class="key__primary">X&#8646;Y</span></button>
+                </div>
+
+                <div class="key-row key-row--five">
+                    <button class="key key--digit" type="button" data-action="digit" data-value="7"><span class="key__primary">7</span></button>
+                    <button class="key key--digit" type="button" data-action="digit" data-value="8"><span class="key__primary">8</span></button>
+                    <button class="key key--digit" type="button" data-action="digit" data-value="9" data-shift-action="undo"><span class="key__secondary">UNDO</span><span class="key__primary">9</span></button>
+                    <button class="key key--op" type="button" data-action="exp" data-shift-action="modulo"><span class="key__secondary">MOD</span><span class="key__primary">EXP</span></button>
+                    <button class="key key--danger key--backspace" type="button" data-action="backspace" data-shift-action="clear-entry" aria-label="Backspace"><span class="key__secondary">CLS</span><span class="key__primary">&#8592;</span></button>
+                </div>
+
+                <div class="key-row key-row--five">
+                    <button class="key key--digit" type="button" data-action="digit" data-value="4" data-shift-action="factorial"><span class="key__secondary">n!</span><span class="key__primary">4</span></button>
+                    <button class="key key--digit" type="button" data-action="digit" data-value="5" data-shift-action="combination"><span class="key__secondary">nCr</span><span class="key__primary">5</span></button>
+                    <button class="key key--digit" type="button" data-action="digit" data-value="6" data-shift-action="permutation"><span class="key__secondary">nPr</span><span class="key__primary">6</span></button>
+                    <button class="key key--op" type="button" data-action="multiply" data-shift-action="radix-dec"><span class="key__secondary">DEC</span><span class="key__primary">&#215;</span></button>
+                    <button class="key key--op" type="button" data-action="divide" data-shift-action="radix-hex"><span class="key__secondary">HEX</span><span class="key__primary">&#247;</span></button>
+                </div>
+
+                <div class="key-row key-row--five">
+                    <button class="key key--digit" type="button" data-action="digit" data-value="1" data-shift-action="const-pi"><span class="key__secondary">&#960;</span><span class="key__primary">1</span></button>
+                    <button class="key key--digit" type="button" data-action="digit" data-value="2" data-shift-action="const-e"><span class="key__secondary">e</span><span class="key__primary">2</span></button>
+                    <button class="key key--digit" type="button" data-action="digit" data-value="3" data-shift-action="delta-percent"><span class="key__secondary">&#916;%</span><span class="key__primary">3</span></button>
+                    <button class="key key--op" type="button" data-action="add" data-shift-action="radix-oct"><span class="key__secondary">OCT</span><span class="key__primary">+</span></button>
+                    <button class="key key--op" type="button" data-action="subtract" data-shift-action="radix-bin"><span class="key__secondary">BIN</span><span class="key__primary">&#8722;</span></button>
+                </div>
+
+                <div class="key-row key-row--bottom">
+                    <button class="key key--digit" type="button" data-action="digit" data-value="0" data-shift-action="convert"><span class="key__secondary">CONV</span><span class="key__primary">0</span></button>
+                    <button class="key key--digit" type="button" data-action="toggle-sign" data-shift-action="constants-menu"><span class="key__secondary">CNST</span><span class="key__primary">&#177;</span></button>
+                    <button class="key key--digit" type="button" data-action="decimal"><span class="key__primary">.</span></button>
+                    <button class="key key--enter" type="button" data-action="enter" data-shift-action="answer"><span class="key__secondary">ANS</span><span class="key__primary">ENTER</span></button>
+                </div>
+            </section>
+        </section>
+    </main>
+    <div class="dialog-backdrop" data-dialog-backdrop hidden>
+        <section class="dialog" aria-live="polite" aria-modal="true" role="dialog">
+            <header class="dialog__header">
+                <h2 class="dialog__title" data-dialog-title>Dialog</h2>
+                <button class="dialog__close" type="button" data-dialog-close aria-label="Close">×</button>
+            </header>
+            <div class="dialog__body" data-dialog-body></div>
+        </section>
+    </div>
+    <script src="./realcalc-data.js"></script>
+    <script src="./index.js" defer></script>
+</body>
+
+</html>
