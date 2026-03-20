@@ -2,10 +2,12 @@ const DISPLAY_DECIMALS = 9;
 const DEFAULT_FORMAT_DIGITS = 4;
 const LONG_PRESS_MS = 650;
 const PROMPT_MS = 900;
+const MAX_RESULT_HISTORY = 50;
 const RADIX_BASES = { BIN: 2, OCT: 8, DEC: 10, HEX: 16 };
 const RADIX_BITS = 48;
 const RADIX_MASK = (1n << BigInt(RADIX_BITS)) - 1n;
 const RADIX_SIGN = 1n << BigInt(RADIX_BITS - 1);
+const RESULT_HISTORY_STORAGE_KEY = "rpn-result-history";
 const REALCALC_REFERENCE = window.REALCALC_REFERENCE ?? { conversions: [], constants: [] };
 
 function parseReferenceNumber(expression) {
@@ -82,6 +84,7 @@ const state = {
   memory: 0,
   memories: Array(10).fill(0),
   history: [],
+  resultHistory: [],
   dialog: null,
 };
 
@@ -113,6 +116,7 @@ const registerElements = {
 };
 
 const angleModeElement = document.querySelector("[data-angle-mode]");
+const shiftModeElement = document.querySelector("[data-shift-mode]");
 const hypModeElement = document.querySelector("[data-hyp-mode]");
 const radixModeElement = document.querySelector("[data-radix-mode]");
 const formatModeElement = document.querySelector("[data-format-mode]");
@@ -204,6 +208,44 @@ function flashPrompt(message) {
   }, PROMPT_MS);
 }
 
+function addResultHistory(value) {
+  if (!Number.isFinite(value)) {
+    return;
+  }
+  state.resultHistory.unshift(normalizeForMode(value));
+  if (state.resultHistory.length > MAX_RESULT_HISTORY) {
+    state.resultHistory.length = MAX_RESULT_HISTORY;
+  }
+  persistResultHistory();
+}
+
+function persistResultHistory() {
+  try {
+    window.localStorage.setItem(RESULT_HISTORY_STORAGE_KEY, JSON.stringify(state.resultHistory));
+  } catch {
+    // Ignore storage errors in private mode or restricted contexts.
+  }
+}
+
+function loadResultHistory() {
+  try {
+    const raw = window.localStorage.getItem(RESULT_HISTORY_STORAGE_KEY);
+    if (!raw) {
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return;
+    }
+    state.resultHistory = parsed
+      .filter((value) => typeof value === "number" && Number.isFinite(value))
+      .map((value) => normalizeForMode(value))
+      .slice(0, MAX_RESULT_HISTORY);
+  } catch {
+    state.resultHistory = [];
+  }
+}
+
 function clearLiftOnNewEntry() {
   state.liftOnNewEntry = false;
 }
@@ -232,6 +274,7 @@ function snapshotState() {
     formatDigits: state.formatDigits,
     memory: state.memory,
     memories: [...state.memories],
+    resultHistory: [...state.resultHistory],
   };
 }
 
@@ -257,6 +300,7 @@ function restoreSnapshot(snapshot) {
   state.formatDigits = snapshot.formatDigits;
   state.memory = snapshot.memory;
   state.memories = [...snapshot.memories];
+  state.resultHistory = [...snapshot.resultHistory];
   state.shiftActive = false;
   state.dialog = null;
 }
@@ -535,6 +579,8 @@ function clearAll() {
   state.memory = 0;
   state.memories = Array(10).fill(0);
   state.history = [];
+  state.resultHistory = [];
+  persistResultHistory();
   state.dialog = null;
 }
 
@@ -544,6 +590,7 @@ function setNumericResult(result) {
   state.entry = formatEditableNumber(normalized);
   state.isEditing = false;
   state.lastAnswer = normalized;
+  addResultHistory(normalized);
   state.liftOnNewEntry = true;
 }
 
@@ -661,9 +708,8 @@ function beginExponentEntry() {
   }
   clearLiftOnNewEntry();
   if (!state.isEditing) {
-    const x = getXValue();
-    state.entry = x === 0 ? "1e000" : `${formatEditableNumber(x)}e000`;
-    state.isEditing = true;
+    beginFreshEntry();
+    state.entry = "1e000";
     syncEntryToStack();
     return;
   }
@@ -733,9 +779,44 @@ function cycleAngleMode() {
   state.angleMode = nextMode[state.angleMode];
 }
 
-function recallAnswer() {
+function selectResultHistory(index) {
+  const value = state.resultHistory[index];
+  if (value === undefined) {
+    closeDialog();
+    return;
+  }
   clearError();
-  setCurrentValue(state.lastAnswer, false);
+  setCurrentValue(value, false);
+  closeDialog();
+}
+
+function clearResultHistory() {
+  state.resultHistory = [];
+  persistResultHistory();
+  closeDialog();
+}
+
+function openResultHistoryDialog() {
+  commitPendingEntry();
+  openDialog({
+    type: "list",
+    title: "Result History",
+    items: [
+      ...state.resultHistory.map((value, index) => ({
+        action: "result-history",
+        id: String(index),
+        label: escapeHtml(formatDisplayNumber(value)),
+        description: "",
+      })),
+      {
+        action: "result-history-clear",
+        id: "clear",
+        label: "Clear History",
+        description: "",
+        fullWidth: true,
+      },
+    ],
+  });
 }
 
 function toggleShift() {
@@ -1122,6 +1203,8 @@ function render() {
   renderXDisplay();
 
   angleModeElement.textContent = state.angleMode;
+  shiftModeElement.hidden = !state.shiftActive;
+  shiftModeElement.textContent = "SHIFT";
   hypModeElement.hidden = state.hypMode === "OFF";
   hypModeElement.textContent = state.hypMode === "INV_HYP" ? "HYP-1" : "HYP";
 
@@ -1316,7 +1399,7 @@ function handleAction(action, value) {
       cycleDisplayFormat();
       break;
     case "answer":
-      recallAnswer();
+      openResultHistoryDialog();
       break;
     case "const-pi":
       setCurrentValue(Math.PI, false);
@@ -1460,6 +1543,12 @@ dialogBackdropElement.addEventListener("click", (event) => {
       selectConversion(groupIndex, fromIndex, toIndex);
       break;
     }
+    case "result-history":
+      selectResultHistory(Number(id));
+      break;
+    case "result-history-clear":
+      clearResultHistory();
+      break;
     default:
       closeDialog();
       break;
@@ -1476,4 +1565,5 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+loadResultHistory();
 render();

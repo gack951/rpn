@@ -283,6 +283,22 @@ test("shows committed large exp values in scientific display like RealCalc", asy
   await expect(page.locator("[data-register-y-exponent]")).toHaveText("99");
 });
 
+test("starts a fresh exponent entry after enter and supports division with a stored scientific value", async ({ page }) => {
+  await page.goto("/");
+
+  await page.locator('[data-action="exp"]').click();
+  await page.locator('[data-action="digit"][data-value="9"]').click();
+  await page.locator('[data-action="digit"][data-value="9"]').click();
+  await page.locator('[data-action="enter"]').click();
+  await page.locator('[data-action="exp"]').click();
+  await page.locator('[data-action="digit"][data-value="1"]').click();
+  await page.locator('[data-action="divide"]').click();
+
+  await expect(page.locator("[data-register-x-main]")).toHaveText("1");
+  await expect(page.locator("[data-register-x-exponent]")).toHaveText("98");
+  await expect(page.locator('[data-stack-count]')).toHaveText("STACK: 1");
+});
+
 test("supports backspace within exp entry", async ({ page }) => {
   await page.goto("/");
 
@@ -338,19 +354,37 @@ test("supports trig functions and angle mode cycling", async ({ page }) => {
 test("supports shift secondary scientific functions", async ({ page }) => {
   await page.goto("/");
 
+  await expect(page.locator('[data-shift-mode]')).toBeHidden();
   await page.locator('[data-action="digit"][data-value="3"]').click();
   await page.locator('[data-action="shift"]').click();
+  await expect(page.locator('[data-shift-mode]')).toHaveText("SHIFT");
   await page.locator('[data-action="square"]').click();
   await expect(page.locator("[data-register-x-main]")).toHaveText("27.");
+  await expect(page.locator('[data-shift-mode]')).toBeHidden();
 
   await page.goto("/");
   await page.locator('[data-action="digit"][data-value="2"]').click();
   await page.locator('[data-action="shift"]').click();
+  await expect(page.locator('[data-shift-mode]')).toHaveText("SHIFT");
   await page.locator('[data-action="ln"]').click();
   await expect(page.locator("[data-register-x-main]")).toHaveText("7.389056099");
+  await expect(page.locator('[data-shift-mode]')).toBeHidden();
 });
 
-test("supports memory and answer recall", async ({ page }) => {
+test("toggles the shift indicator each time shift is pressed", async ({ page }) => {
+  await page.goto("/");
+
+  const indicator = page.locator('[data-shift-mode]');
+  await expect(indicator).toBeHidden();
+
+  await page.locator('[data-action="shift"]').click();
+  await expect(indicator).toHaveText("SHIFT");
+
+  await page.locator('[data-action="shift"]').click();
+  await expect(indicator).toBeHidden();
+});
+
+test("supports memory and result history dialog", async ({ page }) => {
   await page.goto("/");
 
   await page.locator('[data-action="digit"][data-value="4"]').click();
@@ -367,7 +401,25 @@ test("supports memory and answer recall", async ({ page }) => {
   await page.locator('[data-action="add"]').click();
   await page.locator('[data-action="shift"]').click();
   await page.locator('[data-action="enter"]').click();
+  await expect(page.locator('[data-dialog-title]')).toHaveText("Result History");
+  await expect(page.locator('[data-dialog-body]')).toContainText("5.");
+  await page.locator('[data-dialog-action="result-history"][data-dialog-id="0"]').click();
   await expect(page.locator("[data-register-x-main]")).toHaveText("5.");
+
+  await page.reload();
+  await page.locator('[data-action="shift"]').click();
+  await page.locator('[data-action="enter"]').click();
+  await expect(page.locator('[data-dialog-title]')).toHaveText("Result History");
+  await expect(page.locator('[data-dialog-body]')).toContainText("5.");
+  await page.locator('[data-dialog-close]').click();
+
+  await page.locator('[data-action="shift"]').click();
+  await page.locator('[data-action="enter"]').click();
+  await page.locator('[data-dialog-action="result-history-clear"]').click();
+  await page.locator('[data-action="shift"]').click();
+  await page.locator('[data-action="enter"]').click();
+  await expect(page.locator('[data-dialog-title]')).toHaveText("Result History");
+  await expect(page.locator('[data-dialog-body]')).not.toContainText("5.");
 });
 
 test("supports undo and constants", async ({ page }) => {
