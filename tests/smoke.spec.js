@@ -36,7 +36,22 @@ test("fills the portrait viewport and distributes sections without vertical over
   expect(metrics.bodyScrollHeight).toBeLessThanOrEqual(metrics.viewportHeight + 1);
   expect(metrics.display.height).toBeGreaterThan(metrics.strip.height);
   expect(metrics.keypad.height).toBeGreaterThan(metrics.display.height);
-  expect(Math.max(...metrics.keypadRows) - Math.min(...metrics.keypadRows)).toBeLessThan(2);
+  const upperRows = metrics.keypadRows.slice(0, 3);
+  const lowerRows = metrics.keypadRows.slice(3);
+  const upperAverage = upperRows.reduce((sum, value) => sum + value, 0) / upperRows.length;
+  const lowerAverage = lowerRows.reduce((sum, value) => sum + value, 0) / lowerRows.length;
+  expect(lowerAverage).toBeGreaterThan(upperAverage);
+});
+
+test("renders only the menu button in the top strip", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.locator(".memory-strip button")).toHaveCount(1);
+  await expect(page.locator(".memory-strip")).not.toContainText("DRG");
+  await expect(page.locator(".memory-strip")).not.toContainText("TAB");
+  await expect(page.locator(".memory-strip")).not.toContainText("RCL");
+  await expect(page.locator(".memory-strip")).not.toContainText("STO");
+  await expect(page.locator(".memory-strip")).not.toContainText("M-");
 });
 
 test("supports enter and addition", async ({ page }) => {
@@ -521,7 +536,8 @@ test("supports FSE cycling and TAB stack dialog", async ({ page }) => {
   await expect(page.locator('[data-format-mode]')).toHaveText("SCI");
   await expect(page.locator("[data-register-x-main]")).toContainText("1.2340e3");
 
-  await page.locator('[data-action="tab"]').click();
+  await page.locator('[data-action="shift"]').click();
+  await page.locator('[data-action="fse"]').click();
   await expect(page.locator('[data-dialog-title]')).toHaveText("Stack");
   await expect(page.locator('[data-dialog-body]')).toContainText("Y");
   await expect(page.locator('[data-dialog-body]')).toContainText("1.2340e3");
@@ -531,11 +547,13 @@ test("supports memory dialogs, nested constants, and nested conversions", async 
   await page.goto("/");
 
   await page.locator('[data-action="digit"][data-value="9"]').click();
-  await page.locator('[data-action="store-memory-menu"]').click();
+  await page.locator('[data-action="shift"]').click();
+  await page.locator('[data-action="memory-store"]').click();
   await page.locator('[data-dialog-action="memory"][data-dialog-id="2"]').click();
   await page.locator('[data-action="shift"]').click();
   await page.locator('[data-action="backspace"]').click();
-  await page.locator('[data-action="recall-memory-menu"]').click();
+  await page.locator('[data-action="shift"]').click();
+  await page.locator('[data-action="memory-recall"]').click();
   await page.locator('[data-dialog-action="memory"][data-dialog-id="2"]').click();
   await expect(page.locator("[data-register-x-main]")).toHaveText("9.");
 

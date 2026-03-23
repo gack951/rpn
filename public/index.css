@@ -61,7 +61,7 @@ button {
   box-shadow: none;
   overflow: hidden;
   display: grid;
-  grid-template-rows: minmax(0, 1.9fr) minmax(0, 0.32fr) minmax(0, 5.28fr);
+  grid-template-rows: minmax(0, 1.9fr) minmax(0, 5.28fr);
 }
 
 .display-panel {
@@ -228,32 +228,33 @@ button {
   display: flex;
 }
 
+/* 
 .memory-strip {
   display: grid;
-  grid-template-columns: 54px repeat(5, 1fr);
-  gap: clamp(2px, 0.35vh, 4px);
+  grid-template-columns: 54px 1fr;
+  gap: 0;
   padding: clamp(2px, 0.35vh, 4px) clamp(2px, 0.35vh, 4px) 0;
   background: #3b3b3b;
   min-height: 0;
-}
+  align-items: end;
+} */
 
-.memory-strip__menu,
-.memory-strip__key {
+.memory-strip__menu {
   min-height: 0;
   border: 1px solid #555;
   background: #5b5b5b;
-  color: var(--accent);
+  color: var(--key-text);
   border-radius: 4px;
-  font-size: clamp(11px, 1.5vh, 13px);
-}
-
-.memory-strip__key--muted {
-  color: #8a8a8a;
+  font-size: clamp(10px, 1.6vh, 20px);
+  position: absolute;
+  top: 0;
+  width: 16%;
 }
 
 .keypad {
   display: grid;
-  grid-template-rows: repeat(7, minmax(0, 1fr));
+  grid-template-rows:
+    minmax(0, 0.88fr) minmax(0, 0.88fr) minmax(0, 0.88fr) minmax(0, 1.08fr) minmax(0, 1.08fr) minmax(0, 1.08fr) minmax(0, 1.08fr);
   gap: clamp(2px, 0.35vh, 4px);
   padding: clamp(2px, 0.35vh, 4px);
   background: var(--bg);
@@ -261,9 +262,16 @@ button {
 }
 
 .key-row {
+  --button-shrink: clamp(2px, 0.45vh, 5px);
   display: grid;
   gap: clamp(2px, 0.35vh, 4px);
   min-height: 0;
+  align-items: end;
+}
+
+.key-row--with-shift {
+  position: relative;
+  --shift-label-space: clamp(16px, 2.5vh, 22px);
 }
 
 .key-row--six {
@@ -281,7 +289,7 @@ button {
 .key {
   position: relative;
   min-height: 0;
-  height: 100%;
+  height: calc(100% - var(--button-shrink));
   padding: clamp(2px, 0.25vh, 4px) 2px clamp(3px, 0.45vh, 5px);
   border: 1px solid var(--key-border);
   border-radius: 5px;
@@ -295,6 +303,10 @@ button {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
+.key-row--with-shift .key {
+  height: calc(100% - var(--shift-label-space) - var(--button-shrink));
+}
+
 .key:active,
 .key.is-pressed {
   background: linear-gradient(180deg, #b6d985, var(--press));
@@ -303,14 +315,26 @@ button {
 
 .key__secondary {
   color: var(--accent);
-  font-size: clamp(9px, 1.2vh, 11px);
+  font-size: clamp(12px, 2vh, 24px);
   line-height: 1;
-  min-height: clamp(9px, 1.2vh, 11px);
+  min-height: clamp(12px, 2vh, 24px);
+  position: absolute;
+  top: auto;
+  bottom: calc(100% + clamp(3px, 0.45vh, 5px));
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 .key__primary {
   font-size: clamp(16px, 2.35vh, 21px);
   line-height: 1.05;
+}
+
+.key-row--with-shift .key__primary {
+  transform: translateY(-2px);
 }
 
 .key--digit .key__primary {
